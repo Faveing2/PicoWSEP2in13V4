@@ -203,22 +203,21 @@ class epd213v4:
         utime.sleep(50/1000)
 
     def display(self, full=False):
-        print("Displaying iamge")
-        if (self.mode==MODE_FULL) or (full==True):
-            self.sendCommand(WRITE_BW_RAM)
+
+        self.sendCommand(WRITE_BW_RAM)
+        self.transfer_fb()
+
+        if (full == True):
+            self.sendCommand(WRITE_RED_RAM)
             self.transfer_fb()
 
+        if (self.mode==MODE_FULL):
             self.sendCommand(DISPLAY_UPDATE_CONTROL_2)
-            self.sendData(0xf7)
-        elif self.mode==MODE_FAST:
-            self.sendCommand(WRITE_BW_RAM)
-            self.transfer_fb()
-
+            self.sendData(0xc7)
+        elif (self.mode==MODE_FAST)or (full==True):
             self.sendCommand(DISPLAY_UPDATE_CONTROL_2)
             self.sendData(0xf7)
         elif self.mode==MODE_PARTIAL:
-            self.sendCommand(WRITE_BW_RAM)
-            self.transfer_fb()
             self.sendCommand(WRITE_RED_RAM)
             self.transfer_old_fb()
 
@@ -248,6 +247,12 @@ class epd213v4:
     def turnOnDisplay(self):
         self.sendCommand(MASTER_ACTIVATION)
         self.readBusy()
+
+    def sleep(self):
+        self.sendCommand(DEEP_SLEEP_MODE)
+        self.sendData(0x10)
+
+        self.reset_pin.value(0)
 
     @micropython.native
     def transfer_fb(self):
